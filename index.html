@@ -10,7 +10,186 @@ $(document).ready(function(){
 var xml=$("#results").load("./getData.php?q=text%20any%20%22mar%C3%A2tre%22")
 
 }) 
+
 </SCRIPT>
+
+<form action="action_page.php">
+All : <br>
+  <input type="text" name="all">
+  <br>
+Author :<br>
+  <input type="text" name="author">
+  <br>
+Title :<br>
+  <input type="text" name="title">
+  <br>
+Text :<br>
+  <input type="text" name="Text">
+  <br>
+Table of content / captions / legends : <br>
+  <input type="text" name="toc">
+  <br>
+Subject :<br>
+  <input type="text" name="subject">
+  <br>
+Source / Call number : <br>
+  <input type="text" name="source">
+  <br>
+Record : <br>
+  <input type="text" name="record">
+  <br>
+Publisher : <br>
+  <input type="text" name="publisher">
+  <br>
+ISBN : <br>
+  <input type="text" name="ISBN">
+  <br>
+Collection : <br>
+<select class="form-control" name="multiSelect[0][collectionValue]" title="Sélection collections numériques"><option value="" title="---- Choisir une collection ----" selected="selected">
+---- Choisir une collection ----
+</option><option value="ABCdaire1" title="Abécédaires jeunesse">
+Abécédaires jeunesse
+</option><option value="Pam1" title="Arts de la marionnette">
+Arts de la marionnette
+</option><option value="PortulFr" title="Cartes marines sur parchemin">
+Cartes marines sur parchemin
+</option><option value="CollCros1" title="Collection Charles Cros">
+Collection Charles Cros
+</option><option value="Est19Vinck" title="Collection De Vinck (histoire de France, 1770-1871)">
+Collection De Vinck (histoire de France, 1770-1871)
+</option><option value="Des17Gaig" title="Collection Gaignières (histoire de France)">
+Collection Gaignières (histoire de France)
+</option><option value="Basq1" title="Collections basques">
+Collections basques
+</option><option value="GG14181" title="Documents consacrés à la Première Guerre mondiale">
+Documents consacrés à la Première Guerre mondiale
+</option><option value="SalonLXV" title="Décors du salon Louis XV">
+Décors du salon Louis XV
+</option><option value="Alsace1" title="Fonds régional : Alsace">
+Fonds régional : Alsace
+</option><option value="Aquit1" title="Fonds régional : Aquitaine">
+Fonds régional : Aquitaine
+</option><option value="Auvergn1" title="Fonds régional : Auvergne">
+Fonds régional : Auvergne
+</option><option value="BNormand1" title="Fonds régional : Basse-Normandie">
+Fonds régional : Basse-Normandie
+</option><option value="Bourgogn1" title="Fonds régional : Bourgogne">
+Fonds régional : Bourgogne
+</option><option value="Bretagn1" title="Fonds régional : Bretagne">
+Fonds régional : Bretagne
+</option><option value="Centre1" title="Fonds régional : Centre-Val de Loire">
+Fonds régional : Centre-Val de Loire
+</option><option value="ChArdenn1" title="Fonds régional : Champagne-Ardenne">
+Fonds régional : Champagne-Ardenne
+</option><option value="RCorse1" title="Fonds régional : Corse">
+Fonds régional : Corse
+</option><option value="FrancComt1" title="Fonds régional : Franche-Comté">
+Fonds régional : Franche-Comté
+</option><option value="Guyane1" title="Fonds régional : Guyane">
+Fonds régional : Guyane
+</option><option value="HNormand1" title="Fonds régional : Haute-Normandie">
+Fonds régional : Haute-Normandie
+</option><option value="LangRous1" title="Fonds régional : Languedoc-Roussillon">
+Fonds régional : Languedoc-Roussillon
+</option><option value="Limous1" title="Fonds régional : Limousin">
+Fonds régional : Limousin
+</option><option value="Lorr1" title="Fonds régional : Lorraine">
+Fonds régional : Lorraine
+</option><option value="Martiniqu1" title="Fonds régional : Martinique">
+Fonds régional : Martinique
+</option><option value="Mayotte1" title="Fonds régional : Mayotte">
+Fonds régional : Mayotte
+</option><option value="MidiPyren1" title="Fonds régional : Midi-Pyrénées">
+Fonds régional : Midi-Pyrénées
+</option><option value="NordPdeC1" title="Fonds régional : Nord-Pas-de-Calais">
+Fonds régional : Nord-Pas-de-Calais
+</option><option value="PaysLoir1" title="Fonds régional : Pays de la Loire">
+Fonds régional : Pays de la Loire
+</option><option value="Picardi1" title="Fonds régional : Picardie">
+Fonds régional : Picardie
+</option><option value="PoitouCh1" title="Fonds régional : Poitou-Charentes">
+Fonds régional : Poitou-Charentes
+</option><option value="PACA1" title="Fonds régional : Provence-Alpes-Côte d'Azur">
+Fonds régional : Provence-Alpes-Côte d'Azur
+</option><option value="RhoneAlp1" title="Fonds régional : Rhône-Alpes">
+Fonds régional : Rhône-Alpes
+</option><option value="Reunion1" title="Fonds régional : Réunion">
+Fonds régional : Réunion
+</option><option value="VilledePa1" title="Fonds régional : Ville de Paris">
+Fonds régional : Ville de Paris
+</option><option value="IledeFr1" title="Fonds régional : Île-de-France">
+Fonds régional : Île-de-France
+</option><option value="FranceAm" title="France-Amérique">
+France-Amérique
+</option><option value="FranceBr" title="France-Brésil">
+France-Brésil
+</option><option value="Sinica1" title="France-Chine">
+France-Chine
+</option><option value="FranceJp0" title="France-Japon">
+France-Japon
+</option><option value="GlobFr" title="Globes (terrestres, célestes et en fuseaux) ">
+Globes (terrestres, célestes et en fuseaux) 
+</option><option value="JetonFr" title="Jetons français">
+Jetons français
+</option><option value="Masque1" title="Masques">
+Masques
+</option><option value="MonnByz" title="Monnaies byzantines et de l'Orient latin">
+Monnaies byzantines et de l'Orient latin
+</option><option value="MonnFrCar" title="Monnaies carolingiennes">
+Monnaies carolingiennes
+</option><option value="MonnFrMod" title="Monnaies françaises modernes">
+Monnaies françaises modernes
+</option><option value="MonnGre" title="Monnaies grecques">
+Monnaies grecques
+</option><option value="MonnFrMer" title="Monnaies mérovingiennes">
+Monnaies mérovingiennes
+</option><option value="MonnObs" title="Monnaies obsidionales">
+Monnaies obsidionales
+</option><option value="MonnRoImp" title="Monnaies romaines impériales">
+Monnaies romaines impériales
+</option><option value="MonnRoRep" title="Monnaies romaines républicaines">
+Monnaies romaines républicaines
+</option><option value="MonnFrRoy" title="Monnaies royales françaises">
+Monnaies royales françaises
+</option><option value="MusMMA" title="Musée des Monnaies, médailles et antiques">
+Musée des Monnaies, médailles et antiques
+</option><option value="PaPeint18" title="Papiers peints du 18e s">
+Papiers peints du 18e s
+</option><option value="PhoSpec1" title="Photographie de spectacle de l'après-guerre à nos jours">
+Photographie de spectacle de l'après-guerre à nos jours
+</option><option value="Pho20Meu" title="Photographies de l'Agence Meurisse">
+Photographies de l'Agence Meurisse
+</option><option value="Pho20MPP" title="Photographies de l'Agence Mondial Photo-Presse">
+Photographies de l'Agence Mondial Photo-Presse
+</option><option value="Pho20Rol" title="Photographies de l'Agence Rol">
+Photographies de l'Agence Rol
+</option><option value="Pho19NePa" title="Photographies du XIXe siècle">
+Photographies du XIXe siècle
+</option><option value="PhoVerre3" title="Photographies sur plaque de verre de la Société de Géographie, Afrique">
+Photographies sur plaque de verre de la Société de Géographie, Afrique
+</option><option value="PhoVerre1" title="Photographies sur plaque de verre de la Société de Géographie, Amérique">
+Photographies sur plaque de verre de la Société de Géographie, Amérique
+</option><option value="PhoVerre2" title="Photographies sur plaque de verre de la Société de Géographie, Asie">
+Photographies sur plaque de verre de la Société de Géographie, Asie
+</option><option value="PhoVerre5" title="Photographies sur plaque de verre de la Société de Géographie, Europe">
+Photographies sur plaque de verre de la Société de Géographie, Europe
+</option><option value="PhoVerre4" title="Photographies sur plaque de verre de la Société de Géographie, Océanie">
+Photographies sur plaque de verre de la Société de Géographie, Océanie
+</option><option value="PhoPortr1" title="Photographies sur plaque de verre de la Société de Géographie, portraits">
+Photographies sur plaque de verre de la Société de Géographie, portraits
+</option><option value="Tis18Rich" title="Tissus du XVIIIe siècle, Collection Richelieu">
+Tissus du XVIIIe siècle, Collection Richelieu
+</option><option value="CFTranssib" title="Transsibérien">
+Transsibérien
+</option></select>
+  
+  <br> <br>
+  <input type="submit" value="Submit">
+</form> 
+
+
+
+
 </body>
 
 <h1>Identifiants trouvés</h1>
