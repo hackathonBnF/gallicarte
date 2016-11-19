@@ -1,6 +1,17 @@
 <html>
 <head>
 <title></title>
+<link href="./dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+.form-control {
+    display: block;
+    width: 40%;
+    }
+.btn-block {
+    display: block;
+    width: 13%;
+    }
+</style>
 </head>
 <body>
 <SCRIPT TYPE="text/javascript" SRC="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></SCRIPT>
@@ -13,36 +24,44 @@ var xml=$("#results").load("./getData.php?q=text%20any%20%22mar%C3%A2tre%22")
 
 </SCRIPT>
 
-<form action="action_page.php">
-All : <br>
-  <input type="text" name="all">
+<div class="container">
+      <form class="form-signin">
   <br>
-Author :<br>
-  <input type="text" name="author">
+  
+  <form class="form-signin">
+  <h2 class="form-signin-heading"><img src="./visuels/logoGallicarte.png"></h2>
   <br>
-Title :<br>
-  <input type="text" name="title">
   <br>
-Text :<br>
-  <input type="text" name="Text">
+  
+Recherche générale : <br>
+  <input type="text" class="form-control" name="all">
   <br>
-Table of content / captions / legends : <br>
-  <input type="text" name="toc">
+Auteur :<br>
+  <input type="text" class="form-control" name="author">
   <br>
-Subject :<br>
-  <input type="text" name="subject">
+Titre :<br>
+  <input type="text" class="form-control" name="title">
   <br>
-Source / Call number : <br>
-  <input type="text" name="source">
+Texte :<br>
+  <input type="text" class="form-control" name="text">
   <br>
-Record : <br>
-  <input type="text" name="record">
+Table des matières / Légendes : <br>
+  <input type="text" class="form-control" name="toc">
   <br>
-Publisher : <br>
-  <input type="text" name="publisher">
+Sujet :<br>
+  <input type="text" class="form-control" name="subject">
+  <br>
+Source / Cote : <br>
+  <input type="text" class="form-control" name="source">
+  <br>
+Cote : <br>
+  <input type="text" class="form-control" name="record">
+  <br>
+Editeur : <br>
+  <input type="text" class="form-control" name="publisher">
   <br>
 ISBN : <br>
-  <input type="text" name="ISBN">
+  <input type="text" class="form-control" name="ISBN">
   <br>
 Collection : <br>
 <select class="form-control" name="multiSelect[0][collectionValue]" title="Sélection collections numériques"><option value="" title="---- Choisir une collection ----" selected="selected">
@@ -184,9 +203,11 @@ Transsibérien
 </option></select>
   
   <br> <br>
-  <input type="submit" value="Submit">
-</form> 
 
+<button class="btn btn-lg btn-primary btn-block" type="submit">Submit</button>
+
+</form> 
+</div>
 
 
 
