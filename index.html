@@ -1,6 +1,6 @@
 <html>
 <head>
-<title></title>
+<title>Gallicarte - Recherche avanc√©e sur Gallica</title>
 <link href="./dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .form-control {
@@ -16,24 +16,126 @@
 <body>
 <SCRIPT TYPE="text/javascript" SRC="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></SCRIPT>
 <SCRIPT TYPE="text/javascript">
-$(document).ready(function(){
-// Retrieving the results of a Gallica query
-var xml=$("#results").load("./getData.php?q=text%20any%20%22mar%C3%A2tre%22")
 
-}) 
+// Parses the results returned in XML by the Gallica API
+function getXmlFromGallica(xmlData) {     
+    //Transforms the results in XML into a string
+    var xmlString;
+    //IE
+    if (window.ActiveXObject){
+        xmlString = xmlData.xml;
+    }
+    // code for Mozilla, Firefox, Opera, etc.
+    else{
+        xmlString = (new XMLSerializer()).serializeToString(xmlData);
+    }
+    
+    // transforms the HTML tags by removing the : character to make them selectable by jQuery
+    xmlString = xmlString.replace(/dc:subject/g,"dcsubject");
+    xmlString = xmlString.replace(/srw:record/g,"srwrecord");
+    xmlString = xmlString.replace(/dc:identifier/g,"dcidentifier");
+    
+    // transforms the XML string into an XML object
+    var xmlDoc = $.parseXML(xmlString),
+    $xml = $(xmlDoc),
+    $title = $xml.find( "link" );
+    //console.log(xmlData);
+    //console.log(xmlDoc);
+    //console.log("\n");
+    //console.log($title.html());
+    
+    // stores the XML string into a hidden DIV
+    $("#results").html(xmlString);
+    
+    //For each result:
+    $("srwrecord").each(function(i){
+       //alert(i);
+       //console.log("i"+$(this).html());
+       
+       //For each dcsubject in this result
+       $(this).find("dcsubject").each(function(i){
+       
+          var possibleLocation=$(this).html();
+          //console.log("subject"+possibleLocation)
+          var res = possibleLocation.split("--");
+          
+          // if we find -- in the subject, it may be a location
+          if(res.length>1){
+             possibleCountry=res[0].substring(res[0].length-9);
+             //console.log(possibleCountry)
+             
+             // if we find (France) in the subject before --, it is a location
+             if(possibleCountry=="(France) "){
+                //console.log("AAAA"+res[1])
+                $("#allResults").append("<li>"+res[1]+", "+res[0]+"</li>")
+                //console.log($(this).find("dcidentifier").html())
+                
+                //image : http://gallica.bnf.fr/ark:/12148/btv1b105067876/f1.lowres
+             }
+          }
+       })
+    })
+}
+
+
+// Creates the query using the fields in the form
+function createQuery() {
+  var query="", element="";
+  if(($(":text[name='all']").val()).length>0){
+    query=addElementToQuery("gallica%20all%20%22"+$(":text[name='all']").val()+"%22",query)
+  }
+  if(($(":text[name='author']").val()).length>0){
+    query=addElementToQuery("(dc.creator%20all%20%22"+$(":text[name='author']").val()+"%22%20or%20dc.contributor%20all%20%22"+$(":text[name='author']").val()+"%22%20)",query)
+  }
+  
+  console.log(query);
+  return query;
+}
+
+
+// Adds an element to a query
+function addElementToQuery(element,query) {
+  if(query.length>0){
+     query=query+"%20and%20("+element+")";
+  } else {
+     query="("+element+")";
+  }
+  return query;
+}
+
+
+$(document).ready(function(){
+  // Adds an event for any click on the submit button of the form
+  $("#submitGallica").on("click",function(e){
+    e.preventDefault();
+    var query=createQuery();
+    // Queries the Gallica API to get the results in XML format
+    jQuery.ajax({
+    type: "GET",
+    //url: "./getData.php?q=(dc.creator%20all%20%22Atget,%20Eug√®ne%22%20or%20dc.contributor%20all%20%22Atget,%20Eug√®ne%22%20)",
+    url: "./getData.php?q="+query,
+    dataType: "xml",
+    success: getXmlFromGallica
+    });
+  })
+  
+
+})
+    //url: "./getData.php?q=text%20any%20%22mar%C3%A2tre%22",
+
+
 
 </SCRIPT>
 
 <div class="container">
-      <form class="form-signin">
-  <br>
   
   <form class="form-signin">
-  <h2 class="form-signin-heading"><img src="./visuels/logoGallicarte.png"></h2>
+  <h1 class="form-signin-heading"><img src="./visuels/logoGallicarte.png"></h1>
   <br>
+  <h2 class="form-signin-heading">Recherche avanc√©e sur Gallica</h2>
   <br>
   
-Recherche gÈnÈrale : <br>
+Recherche g√©n√©rale : <br>
   <input type="text" class="form-control" name="all">
   <br>
 Auteur :<br>
@@ -45,7 +147,7 @@ Titre :<br>
 Texte :<br>
   <input type="text" class="form-control" name="text">
   <br>
-Table des matiËres / LÈgendes : <br>
+Table des mati√®res / L√©gendes : <br>
   <input type="text" class="form-control" name="toc">
   <br>
 Sujet :<br>
@@ -64,10 +166,10 @@ ISBN : <br>
   <input type="text" class="form-control" name="ISBN">
   <br>
 Collection : <br>
-<select class="form-control" name="multiSelect[0][collectionValue]" title="SÈlection collections numÈriques"><option value="" title="---- Choisir une collection ----" selected="selected">
+<select class="form-control" name="multiSelect[0][collectionValue]" title="S√©lection collections num√©riques"><option value="" title="---- Choisir une collection ----" selected="selected">
 ---- Choisir une collection ----
-</option><option value="ABCdaire1" title="AbÈcÈdaires jeunesse">
-AbÈcÈdaires jeunesse
+</option><option value="ABCdaire1" title="Ab√©c√©daires jeunesse">
+Ab√©c√©daires jeunesse
 </option><option value="Pam1" title="Arts de la marionnette">
 Arts de la marionnette
 </option><option value="PortulFr" title="Cartes marines sur parchemin">
@@ -76,146 +178,148 @@ Cartes marines sur parchemin
 Collection Charles Cros
 </option><option value="Est19Vinck" title="Collection De Vinck (histoire de France, 1770-1871)">
 Collection De Vinck (histoire de France, 1770-1871)
-</option><option value="Des17Gaig" title="Collection GaigniËres (histoire de France)">
-Collection GaigniËres (histoire de France)
+</option><option value="Des17Gaig" title="Collection Gaigni√®res (histoire de France)">
+Collection Gaigni√®res (histoire de France)
 </option><option value="Basq1" title="Collections basques">
 Collections basques
-</option><option value="GG14181" title="Documents consacrÈs ‡ la PremiËre Guerre mondiale">
-Documents consacrÈs ‡ la PremiËre Guerre mondiale
-</option><option value="SalonLXV" title="DÈcors du salon Louis XV">
-DÈcors du salon Louis XV
-</option><option value="Alsace1" title="Fonds rÈgional : Alsace">
-Fonds rÈgional : Alsace
-</option><option value="Aquit1" title="Fonds rÈgional : Aquitaine">
-Fonds rÈgional : Aquitaine
-</option><option value="Auvergn1" title="Fonds rÈgional : Auvergne">
-Fonds rÈgional : Auvergne
-</option><option value="BNormand1" title="Fonds rÈgional : Basse-Normandie">
-Fonds rÈgional : Basse-Normandie
-</option><option value="Bourgogn1" title="Fonds rÈgional : Bourgogne">
-Fonds rÈgional : Bourgogne
-</option><option value="Bretagn1" title="Fonds rÈgional : Bretagne">
-Fonds rÈgional : Bretagne
-</option><option value="Centre1" title="Fonds rÈgional : Centre-Val de Loire">
-Fonds rÈgional : Centre-Val de Loire
-</option><option value="ChArdenn1" title="Fonds rÈgional : Champagne-Ardenne">
-Fonds rÈgional : Champagne-Ardenne
-</option><option value="RCorse1" title="Fonds rÈgional : Corse">
-Fonds rÈgional : Corse
-</option><option value="FrancComt1" title="Fonds rÈgional : Franche-ComtÈ">
-Fonds rÈgional : Franche-ComtÈ
-</option><option value="Guyane1" title="Fonds rÈgional : Guyane">
-Fonds rÈgional : Guyane
-</option><option value="HNormand1" title="Fonds rÈgional : Haute-Normandie">
-Fonds rÈgional : Haute-Normandie
-</option><option value="LangRous1" title="Fonds rÈgional : Languedoc-Roussillon">
-Fonds rÈgional : Languedoc-Roussillon
-</option><option value="Limous1" title="Fonds rÈgional : Limousin">
-Fonds rÈgional : Limousin
-</option><option value="Lorr1" title="Fonds rÈgional : Lorraine">
-Fonds rÈgional : Lorraine
-</option><option value="Martiniqu1" title="Fonds rÈgional : Martinique">
-Fonds rÈgional : Martinique
-</option><option value="Mayotte1" title="Fonds rÈgional : Mayotte">
-Fonds rÈgional : Mayotte
-</option><option value="MidiPyren1" title="Fonds rÈgional : Midi-PyrÈnÈes">
-Fonds rÈgional : Midi-PyrÈnÈes
-</option><option value="NordPdeC1" title="Fonds rÈgional : Nord-Pas-de-Calais">
-Fonds rÈgional : Nord-Pas-de-Calais
-</option><option value="PaysLoir1" title="Fonds rÈgional : Pays de la Loire">
-Fonds rÈgional : Pays de la Loire
-</option><option value="Picardi1" title="Fonds rÈgional : Picardie">
-Fonds rÈgional : Picardie
-</option><option value="PoitouCh1" title="Fonds rÈgional : Poitou-Charentes">
-Fonds rÈgional : Poitou-Charentes
-</option><option value="PACA1" title="Fonds rÈgional : Provence-Alpes-CÙte d'Azur">
-Fonds rÈgional : Provence-Alpes-CÙte d'Azur
-</option><option value="RhoneAlp1" title="Fonds rÈgional : RhÙne-Alpes">
-Fonds rÈgional : RhÙne-Alpes
-</option><option value="Reunion1" title="Fonds rÈgional : RÈunion">
-Fonds rÈgional : RÈunion
-</option><option value="VilledePa1" title="Fonds rÈgional : Ville de Paris">
-Fonds rÈgional : Ville de Paris
-</option><option value="IledeFr1" title="Fonds rÈgional : Œle-de-France">
-Fonds rÈgional : Œle-de-France
-</option><option value="FranceAm" title="France-AmÈrique">
-France-AmÈrique
-</option><option value="FranceBr" title="France-BrÈsil">
-France-BrÈsil
+</option><option value="GG14181" title="Documents consacr√©s √† la Premi√®re Guerre mondiale">
+Documents consacr√©s √† la Premi√®re Guerre mondiale
+</option><option value="SalonLXV" title="D√©cors du salon Louis XV">
+D√©cors du salon Louis XV
+</option><option value="Alsace1" title="Fonds r√©gional : Alsace">
+Fonds r√©gional : Alsace
+</option><option value="Aquit1" title="Fonds r√©gional : Aquitaine">
+Fonds r√©gional : Aquitaine
+</option><option value="Auvergn1" title="Fonds r√©gional : Auvergne">
+Fonds r√©gional : Auvergne
+</option><option value="BNormand1" title="Fonds r√©gional : Basse-Normandie">
+Fonds r√©gional : Basse-Normandie
+</option><option value="Bourgogn1" title="Fonds r√©gional : Bourgogne">
+Fonds r√©gional : Bourgogne
+</option><option value="Bretagn1" title="Fonds r√©gional : Bretagne">
+Fonds r√©gional : Bretagne
+</option><option value="Centre1" title="Fonds r√©gional : Centre-Val de Loire">
+Fonds r√©gional : Centre-Val de Loire
+</option><option value="ChArdenn1" title="Fonds r√©gional : Champagne-Ardenne">
+Fonds r√©gional : Champagne-Ardenne
+</option><option value="RCorse1" title="Fonds r√©gional : Corse">
+Fonds r√©gional : Corse
+</option><option value="FrancComt1" title="Fonds r√©gional : Franche-Comt√©">
+Fonds r√©gional : Franche-Comt√©
+</option><option value="Guyane1" title="Fonds r√©gional : Guyane">
+Fonds r√©gional : Guyane
+</option><option value="HNormand1" title="Fonds r√©gional : Haute-Normandie">
+Fonds r√©gional : Haute-Normandie
+</option><option value="LangRous1" title="Fonds r√©gional : Languedoc-Roussillon">
+Fonds r√©gional : Languedoc-Roussillon
+</option><option value="Limous1" title="Fonds r√©gional : Limousin">
+Fonds r√©gional : Limousin
+</option><option value="Lorr1" title="Fonds r√©gional : Lorraine">
+Fonds r√©gional : Lorraine
+</option><option value="Martiniqu1" title="Fonds r√©gional : Martinique">
+Fonds r√©gional : Martinique
+</option><option value="Mayotte1" title="Fonds r√©gional : Mayotte">
+Fonds r√©gional : Mayotte
+</option><option value="MidiPyren1" title="Fonds r√©gional : Midi-Pyr√©n√©es">
+Fonds r√©gional : Midi-Pyr√©n√©es
+</option><option value="NordPdeC1" title="Fonds r√©gional : Nord-Pas-de-Calais">
+Fonds r√©gional : Nord-Pas-de-Calais
+</option><option value="PaysLoir1" title="Fonds r√©gional : Pays de la Loire">
+Fonds r√©gional : Pays de la Loire
+</option><option value="Picardi1" title="Fonds r√©gional : Picardie">
+Fonds r√©gional : Picardie
+</option><option value="PoitouCh1" title="Fonds r√©gional : Poitou-Charentes">
+Fonds r√©gional : Poitou-Charentes
+</option><option value="PACA1" title="Fonds r√©gional : Provence-Alpes-C√¥te d'Azur">
+Fonds r√©gional : Provence-Alpes-C√¥te d'Azur
+</option><option value="RhoneAlp1" title="Fonds r√©gional : Rh√¥ne-Alpes">
+Fonds r√©gional : Rh√¥ne-Alpes
+</option><option value="Reunion1" title="Fonds r√©gional : R√©union">
+Fonds r√©gional : R√©union
+</option><option value="VilledePa1" title="Fonds r√©gional : Ville de Paris">
+Fonds r√©gional : Ville de Paris
+</option><option value="IledeFr1" title="Fonds r√©gional : √éle-de-France">
+Fonds r√©gional : √éle-de-France
+</option><option value="FranceAm" title="France-Am√©rique">
+France-Am√©rique
+</option><option value="FranceBr" title="France-Br√©sil">
+France-Br√©sil
 </option><option value="Sinica1" title="France-Chine">
 France-Chine
 </option><option value="FranceJp0" title="France-Japon">
 France-Japon
-</option><option value="GlobFr" title="Globes (terrestres, cÈlestes et en fuseaux) ">
-Globes (terrestres, cÈlestes et en fuseaux) 
-</option><option value="JetonFr" title="Jetons franÁais">
-Jetons franÁais
+</option><option value="GlobFr" title="Globes (terrestres, c√©lestes et en fuseaux) ">
+Globes (terrestres, c√©lestes et en fuseaux) 
+</option><option value="JetonFr" title="Jetons fran√ßais">
+Jetons fran√ßais
 </option><option value="Masque1" title="Masques">
 Masques
 </option><option value="MonnByz" title="Monnaies byzantines et de l'Orient latin">
 Monnaies byzantines et de l'Orient latin
 </option><option value="MonnFrCar" title="Monnaies carolingiennes">
 Monnaies carolingiennes
-</option><option value="MonnFrMod" title="Monnaies franÁaises modernes">
-Monnaies franÁaises modernes
+</option><option value="MonnFrMod" title="Monnaies fran√ßaises modernes">
+Monnaies fran√ßaises modernes
 </option><option value="MonnGre" title="Monnaies grecques">
 Monnaies grecques
-</option><option value="MonnFrMer" title="Monnaies mÈrovingiennes">
-Monnaies mÈrovingiennes
+</option><option value="MonnFrMer" title="Monnaies m√©rovingiennes">
+Monnaies m√©rovingiennes
 </option><option value="MonnObs" title="Monnaies obsidionales">
 Monnaies obsidionales
-</option><option value="MonnRoImp" title="Monnaies romaines impÈriales">
-Monnaies romaines impÈriales
-</option><option value="MonnRoRep" title="Monnaies romaines rÈpublicaines">
-Monnaies romaines rÈpublicaines
-</option><option value="MonnFrRoy" title="Monnaies royales franÁaises">
-Monnaies royales franÁaises
-</option><option value="MusMMA" title="MusÈe des Monnaies, mÈdailles et antiques">
-MusÈe des Monnaies, mÈdailles et antiques
+</option><option value="MonnRoImp" title="Monnaies romaines imp√©riales">
+Monnaies romaines imp√©riales
+</option><option value="MonnRoRep" title="Monnaies romaines r√©publicaines">
+Monnaies romaines r√©publicaines
+</option><option value="MonnFrRoy" title="Monnaies royales fran√ßaises">
+Monnaies royales fran√ßaises
+</option><option value="MusMMA" title="Mus√©e des Monnaies, m√©dailles et antiques">
+Mus√©e des Monnaies, m√©dailles et antiques
 </option><option value="PaPeint18" title="Papiers peints du 18e s">
 Papiers peints du 18e s
-</option><option value="PhoSpec1" title="Photographie de spectacle de l'aprËs-guerre ‡ nos jours">
-Photographie de spectacle de l'aprËs-guerre ‡ nos jours
+</option><option value="PhoSpec1" title="Photographie de spectacle de l'apr√®s-guerre √† nos jours">
+Photographie de spectacle de l'apr√®s-guerre √† nos jours
 </option><option value="Pho20Meu" title="Photographies de l'Agence Meurisse">
 Photographies de l'Agence Meurisse
 </option><option value="Pho20MPP" title="Photographies de l'Agence Mondial Photo-Presse">
 Photographies de l'Agence Mondial Photo-Presse
 </option><option value="Pho20Rol" title="Photographies de l'Agence Rol">
 Photographies de l'Agence Rol
-</option><option value="Pho19NePa" title="Photographies du XIXe siËcle">
-Photographies du XIXe siËcle
-</option><option value="PhoVerre3" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Afrique">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Afrique
-</option><option value="PhoVerre1" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, AmÈrique">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, AmÈrique
-</option><option value="PhoVerre2" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Asie">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Asie
-</option><option value="PhoVerre5" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Europe">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, Europe
-</option><option value="PhoVerre4" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, OcÈanie">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, OcÈanie
-</option><option value="PhoPortr1" title="Photographies sur plaque de verre de la SociÈtÈ de GÈographie, portraits">
-Photographies sur plaque de verre de la SociÈtÈ de GÈographie, portraits
-</option><option value="Tis18Rich" title="Tissus du XVIIIe siËcle, Collection Richelieu">
-Tissus du XVIIIe siËcle, Collection Richelieu
-</option><option value="CFTranssib" title="TranssibÈrien">
-TranssibÈrien
+</option><option value="Pho19NePa" title="Photographies du XIXe si√®cle">
+Photographies du XIXe si√®cle
+</option><option value="PhoVerre3" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Afrique">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Afrique
+</option><option value="PhoVerre1" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Am√©rique">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Am√©rique
+</option><option value="PhoVerre2" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Asie">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Asie
+</option><option value="PhoVerre5" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Europe">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Europe
+</option><option value="PhoVerre4" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Oc√©anie">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, Oc√©anie
+</option><option value="PhoPortr1" title="Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, portraits">
+Photographies sur plaque de verre de la Soci√©t√© de G√©ographie, portraits
+</option><option value="Tis18Rich" title="Tissus du XVIIIe si√®cle, Collection Richelieu">
+Tissus du XVIIIe si√®cle, Collection Richelieu
+</option><option value="CFTranssib" title="Transsib√©rien">
+Transsib√©rien
 </option></select>
-  
-  <br> <br>
+<br><br>
 
-<button class="btn btn-lg btn-primary btn-block" type="submit">Rechercher</button>
-
-</form> 
+<button class="btn btn-lg btn-primary btn-block" id="submitGallica" type="submit">Rechercher</button>
+</form>
 </div>
 
 
 
 </body>
 
-<h1>Identifiants trouvÈs</h1>
+<h1>Lieux trouv√©s</h1>
 
+<ul id="allResults"></ul>
+
+<!--<div id="results" style="visibility:hidden">-->
 <div id="results">
+</div>
 
 </div>
 
