@@ -1,2 +1,2 @@
-=== gallicarte ===
+# gallicarte
 
