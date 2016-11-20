@@ -1413,6 +1413,7 @@ a.bg-danger:hover {
 .galliheader {
 padding-left: 40px;
 padding-top: 10px;
+border-radius: 15px;
 background-color: #b63033
 }
 ol,
@@ -3241,7 +3242,7 @@ fieldset[disabled] .btn-default:hover {
 .open>.dropdown-toggle.btn-primary:hover {
     color: #fff;
     background-color: #852020;
-    border-color: #122b40
+    border-color: #852020
 }
 .btn-primary.active,
 .btn-primary:active,
