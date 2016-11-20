@@ -1411,6 +1411,7 @@ a.bg-danger:hover {
     border-bottom: 1px solid #eee
 }
 .galliheader {
+margin-top: 20px;
 padding-left: 40px;
 padding-top: 10px;
 border-radius: 15px;
