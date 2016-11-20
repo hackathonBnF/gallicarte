@@ -1,0 +1,27 @@
+{
+  "manifest_version": 2,
+
+  "name": "Gallicarte plugin",
+  "description": "This extension will show results on Gallica as a map",
+  "version": "0.1",
+  "content_scripts": [ {
+  "all_frames": true,
+  "js": [ "jquery.min.js",
+    "leaflet.js",
+    "leaflet-search.js",
+    "leaflet.markercluster-src.js",
+    "leaflet.awesome-markers.js",
+    "leaflet-markers.js",
+    "data-bnf-api.js",
+    "content.js" ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "css":        ["leaflet.css", "leaflet.awesome-markers.css", "style.css"],
+  "matches": [ "*://gallica.bnf.fr/*"]
+} ],
+  "permissions": [
+    "activeTab",
+    "http://*/*"
+  ]
+}
