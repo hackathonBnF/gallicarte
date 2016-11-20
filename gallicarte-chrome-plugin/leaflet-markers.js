@@ -33,7 +33,7 @@ var controlSearch = new L.Control.Search({
 
 
 
-function addMaker(coords, title, map){
+function addMaker(coords, title, link, map){
   var LeafIcon = L.Icon.extend({
     options: {}
 });
@@ -42,6 +42,6 @@ function addMaker(coords, title, map){
 
 
   L.marker(coords, {icon: blueIcon }).addTo(map)
-      .bindPopup(title)
+      .bindPopup('<a href='+ link +'><img src="'+link+'/f1.lowres" style="height: 70px;" ><br>'+title+'</a>')
       .openPopup();
 }

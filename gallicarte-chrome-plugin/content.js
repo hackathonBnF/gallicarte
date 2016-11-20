@@ -1,36 +1,34 @@
 console.log('Hello Gallicarte');
-var mapButtonAdded = false;
-var mapDisplayed = false;
 var oldResults;
 var markersToAdd = [];
 
 function addDisplayEvent(){
+
+    // setTimeout(function(){
+    //    getCurrentPageResults();
+    // }, 200);
     $('#button-type-affichage').click(function(){
-
-        setTimeout(function(){
-           getCurrentPageResults();
-        }, 200);
-
-        addMapButton();
+      addMapButton();
     });
+
+    // addDisplayEvent();
+  console.log('add display event');
+
 }
 
 function addMapButton(){
-  console.log("add button");
-    if($('#topPaginationBarArea').find('.dropdown-menu').length >= 3){
-        return;
-    } else {
-        mapButtonAdded = true;
-    }
+  console.log('Add Map Button');
     setTimeout(function() {
-        console.log('Add Map Button');
+      if($('#topPaginationBarArea').find('.dropdown-menu').first().children().length > 2){
+        console.log('nope');
+      } else {
         $('#topPaginationBarArea').find('.dropdown-menu').append('<li> <a href="#" class="display-map"><span class="pictos current-mode-affichage icon-carte"></span><span class="desc-mode">carte</span></a></li>');
         displayMap();
-    }, 50);
-
+      }
+    }, 30);
 }
 
-function getCurrentPageResults(map){
+function getCurrentPageResults(){
     console.log("get current page results");
     var urls = $('.main-infos > h2 > a');
     bnfLinks = [];
@@ -38,22 +36,43 @@ function getCurrentPageResults(map){
         var parsedLink = $(link).attr('href').split('.');
         var parsedName = $(link).html();
         var bnfLink = parsedLink[0] +'.'+ parsedLink[1] +'.'+ parsedLink[2];
-        bnfLinks.push([parsedName, bnfLink]);
+        var bnfResult = {
+          url: bnfLink,
+          name: parsedName
+        };
+        bnfLinks.push(bnfResult);
     });
-    createSparqlQuery(bnfLinks, function(name, coord){
-      if(coord.length > 0){
-        markersToAdd.push([coord, name]);
+    createSparqlQuery(bnfLinks, function(result){
+      if(result.coord.length > 0){
+        markersToAdd.push(result);
       }
     });
+}
+
+function recoverResults(oldResults){
+  $('.dropdown-menu').first().find('a').click(function(e){
+    if(!$(e.target).hasClass('display-map')){
+        $('#searchResultsArea').html(oldResults);
+        setTimeout(function(){
+          addDisplayEvent();
+        }, 100);
+    }
+  });
 }
 
 
 function displayMap(){
     $('.display-map').click(function(){
-        oldResults = $('#searchResultsArea').html();
+        addDisplayEvent();
+        getCurrentPageResults();
+        var oldResults = $('#searchResultsArea').html();
+        recoverResults(oldResults);
+
+        $('#topPaginationBarArea').find('a');
+
         $('#searchResultsArea').html('<div id="map" style="height: 450px; "></div>');
 
-        var map = L.map('map').setView([51.505, -0.09], 13);
+        var map = L.map('map').setView([48.8335877,2.3735772], 13);
 
         L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=', {
             attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://mapbox.com">Mapbox</a>',
@@ -61,12 +80,13 @@ function displayMap(){
             id: '',
             accessToken: '',
         }).addTo(map);
-
+        
         map.addLayer(markers);
 
         setTimeout(function(){
           markersToAdd.forEach(function(data){
-            addMaker(data[0], data[1], map);
+            console.log(data);
+            addMaker(data.coord, data.name, data.url, map);
           });
         }, 100);
 

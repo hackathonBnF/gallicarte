@@ -1,7 +1,7 @@
 function createSparqlQuery(bnfResults, done){
     bnfResults.forEach(function(bnfResults){
-        var arkLink = bnfResults[1];
-        var name = bnfResults[0];
+        var arkLink = bnfResults.url;
+        var name = bnfResults.name;
         // arkLink = "http://gallica.bnf.fr/ark:/12148/bpt6k5657596m";
         var req= 'http://data.bnf.fr/sparql?default-graph-uri=&query=' + encodeURIComponent('PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>\
         PREFIX skos: <http://www.w3.org/2004/02/skos/core#>\
@@ -32,7 +32,7 @@ function createSparqlQuery(bnfResults, done){
 
         $.get(req, function(data) {
             var coord = extractCoordinates(data);
-            done(name, coord);
+            done({name: name, url:arkLink, coord:coord});
         });
 
     });
