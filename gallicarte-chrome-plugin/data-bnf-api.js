@@ -11,7 +11,7 @@ function createSparqlQuery(bnfResults, done){
         PREFIX dc: <http://purl.org/dc/elements/1.1/>\
         PREFIX marcrel: <http://id.loc.gov/vocabulary/relators/>\
         PREFIX bnfroles: <http://data.bnf.fr/vocabulary/roles/>\
-        SELECT DISTINCT ?docnum ?lieu ?lat ?long ?label \
+        SELECT ?docnum ?lieu ?lat ?long ?label \
         WHERE\
         {\
           ?conceptLieu foaf:focus ?lieu ;\
@@ -39,11 +39,21 @@ function createSparqlQuery(bnfResults, done){
 }
 
 function extractCoordinates(data){
+    console.log(data);
     if(data.results != undefined && data.results.bindings != undefined && data.results.bindings.length > 0){
-        console.log(data.results.bindings[0]);
-        var lat = data.results.bindings[0].lat.value;
-        var long = data.results.bindings[0].long.value;
-        return [lat, long];
+        coordinates = [];
+        if(data.results.length > 0){
+            data.results.forEach(function(binding){
+                binding.forEach(function(coord){
+                    coordinates.push([coord.lat.value, coord.long.value]);
+                });
+            });
+        } else {
+            data.results.bindings.forEach(function(coord){
+                coordinates.push([coord.lat.value, coord.long.value]);
+            });
+        }
+        return coordinates;
         // return [parseFloat(lat), parseFloat(long)];
     } else {
         return [];

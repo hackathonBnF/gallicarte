@@ -36,12 +36,19 @@ var controlSearch = new L.Control.Search({
 function addMaker(coords, title, link, map){
   var LeafIcon = L.Icon.extend({
     options: {}
-});
+  });
 
   var blueIcon = new LeafIcon({iconUrl: 'https://unpkg.com/leaflet@1.0.1/dist/images/marker-icon.png'});
+  console.log(coords);
+  if(coords.length > 1){
+    L.polygon(coords, {icon: blueIcon }).addTo(map)
+    .bindPopup('<a href='+ link +'><img src="'+link+'/f1.lowres" style="height: 70px;" ><br>'+title+'</a>')
+    .openPopup();
 
+  } else {
+    L.marker(coords[0], {icon: blueIcon }).addTo(map)
+    .bindPopup('<a href='+ link +'><img src="'+link+'/f1.lowres" style="height: 70px;" ><br>'+title+'</a>')
+    .openPopup();
+  }
 
-  L.marker(coords, {icon: blueIcon }).addTo(map)
-      .bindPopup('<a href='+ link +'><img src="'+link+'/f1.lowres" style="height: 70px;" ><br>'+title+'</a>')
-      .openPopup();
 }
