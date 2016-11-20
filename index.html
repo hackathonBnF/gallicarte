@@ -1,6 +1,7 @@
 <html>
 <head>
 <title>Gallicarte - Recherche avancée sur Gallica</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link href="./dist/css/bootstrap.min.css" rel="stylesheet">
 <style>
 .form-control {
@@ -87,6 +88,34 @@ function createQuery() {
   if(($(":text[name='author']").val()).length>0){
     query=addElementToQuery("(dc.creator%20all%20%22"+$(":text[name='author']").val()+"%22%20or%20dc.contributor%20all%20%22"+$(":text[name='author']").val()+"%22%20)",query)
   }
+  if(($(":text[name='title']").val()).length>0){
+    query=addElementToQuery("dc.title%20all%20%22"+$(":text[name='title']").val()+"%22",query)
+  }
+  if(($(":text[name='text']").val()).length>0){
+    query=addElementToQuery("text%20all%20%22"+$(":text[name='text']").val()+"%22",query)
+  }
+  if(($(":text[name='toc']").val()).length>0){
+    query=addElementToQuery("toc%20all%20%22"+$(":text[name='toc']").val()+"%22",query)
+  }
+  if(($(":text[name='subject']").val()).length>0){
+    query=addElementToQuery("dc.subject%20all%20%22"+$(":text[name='subject']").val()+"%22",query)
+  }
+  if(($(":text[name='source']").val()).length>0){
+    query=addElementToQuery("dc.source%20all%20%22"+$(":text[name='source']").val()+"%22",query)
+  }
+  if(($(":text[name='record']").val()).length>0){
+    query=addElementToQuery("notice%20all%20%22"+$(":text[name='record']").val()+"%22",query)
+  }
+  if(($(":text[name='publisher']").val()).length>0){
+    query=addElementToQuery("dc.publisher%20all%20%22"+$(":text[name='publisher']").val()+"%22",query)
+  }
+  if(($(":text[name='isbn']").val()).length>0){
+    query=addElementToQuery("ISBN%20all%20%22"+$(":text[name='isbn']").val()+"%22",query)
+  }
+  if(($("select[name='collection']").val()).length>0){
+    query=addElementToQuery("colnum%20adj%20%22Appartient%20à%20l%27ensemble%20documentaire%20:%20"+$("select[name='collection']").val()+"%22",query)
+  }
+  
   
   console.log(query);
   return query;
@@ -163,10 +192,10 @@ Editeur : <br>
   <input type="text" class="form-control" name="publisher">
   <br>
 ISBN : <br>
-  <input type="text" class="form-control" name="ISBN">
+  <input type="text" class="form-control" name="isbn">
   <br>
 Collection : <br>
-<select class="form-control" name="multiSelect[0][collectionValue]" title="Sélection collections numériques"><option value="" title="---- Choisir une collection ----" selected="selected">
+<select class="form-control" name="collection" title="Sélection collections numériques"><option value="" title="---- Choisir une collection ----" selected="selected">
 ---- Choisir une collection ----
 </option><option value="ABCdaire1" title="Abécédaires jeunesse">
 Abécédaires jeunesse
