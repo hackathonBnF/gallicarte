@@ -1,161 +1,38 @@
 <html>
 <head>
 <title>Gallicarte - Recherche avancée sur Gallica</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8" />
-<link href="./dist/css/bootstrap.min.css" rel="stylesheet">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <link href="./dist/css/bootstrap.min.css" rel="stylesheet">
+
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+		<script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+
+		<script src="./src/js/l.control.geosearch.js"></script>
+		<script src="./src/js/l.geosearch.provider.google.js"></script>
+		<link rel="stylesheet" href="./src/css/l.geosearch.css" />
 </head>
+
 <body>
+
+	
 <SCRIPT TYPE="text/javascript" SRC="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></SCRIPT>
-<SCRIPT TYPE="text/javascript">
-
-// Parses the results returned in XML by the Gallica API
-function getXmlFromGallica(xmlData) {     
-    //Transforms the results in XML into a string
-    var xmlString;
-    //IE
-    if (window.ActiveXObject){
-        xmlString = xmlData.xml;
-    }
-    // code for Mozilla, Firefox, Opera, etc.
-    else{
-        xmlString = (new XMLSerializer()).serializeToString(xmlData);
-    }
-    
-    // transforms the HTML tags by removing the : character to make them selectable by jQuery
-    xmlString = xmlString.replace(/dc:subject/g,"dcsubject");
-    xmlString = xmlString.replace(/srw:record/g,"srwrecord");
-    xmlString = xmlString.replace(/dc:identifier/g,"dcidentifier");
-    
-    // transforms the XML string into an XML object
-    var xmlDoc = $.parseXML(xmlString),
-    $xml = $(xmlDoc),
-    $title = $xml.find( "link" );
-    //console.log(xmlData);
-    //console.log(xmlDoc);
-    //console.log("\n");
-    //console.log($title.html());
-    
-    // stores the XML string into a hidden DIV
-    $("#results").html(xmlString);
-    
-    //For each result:
-    $("srwrecord").each(function(i){
-       //alert(i);
-       //console.log("i"+$(this).html());
-       
-       //For each dcsubject in this result
-       $(this).find("dcsubject").each(function(i){
-       
-          var possibleLocation=$(this).html();
-          //console.log("subject"+possibleLocation)
-          var res = possibleLocation.split("--");
-          
-          // if we find -- in the subject, it may be a location
-          if(res.length>1){
-             possibleCountry=res[0].substring(res[0].length-9);
-             //console.log(possibleCountry)
-             
-             // if we find (France) in the subject before --, it is a location
-             if(possibleCountry=="(France) "){
-                //console.log("AAAA"+res[1])
-                $("#allResults").append("<li>"+res[1]+", "+res[0]+"</li>")
-                //console.log($(this).find("dcidentifier").html())
-                
-                //image : http://gallica.bnf.fr/ark:/12148/btv1b105067876/f1.lowres
-             }
-          }
-       })
-    })
-}
-
-
-// Creates the query using the fields in the form
-function createQuery() {
-  var query="", element="";
-  if(($(":text[name='all']").val()).length>0){
-    query=addElementToQuery("gallica%20all%20%22"+$(":text[name='all']").val()+"%22",query)
-  }
-  if(($(":text[name='author']").val()).length>0){
-    query=addElementToQuery("(dc.creator%20all%20%22"+$(":text[name='author']").val()+"%22%20or%20dc.contributor%20all%20%22"+$(":text[name='author']").val()+"%22%20)",query)
-  }
-  if(($(":text[name='title']").val()).length>0){
-    query=addElementToQuery("dc.title%20all%20%22"+$(":text[name='title']").val()+"%22",query)
-  }
-  if(($(":text[name='text']").val()).length>0){
-    query=addElementToQuery("text%20all%20%22"+$(":text[name='text']").val()+"%22",query)
-  }
-  if(($(":text[name='toc']").val()).length>0){
-    query=addElementToQuery("toc%20all%20%22"+$(":text[name='toc']").val()+"%22",query)
-  }
-  if(($(":text[name='subject']").val()).length>0){
-    query=addElementToQuery("dc.subject%20all%20%22"+$(":text[name='subject']").val()+"%22",query)
-  }
-  if(($(":text[name='source']").val()).length>0){
-    query=addElementToQuery("dc.source%20all%20%22"+$(":text[name='source']").val()+"%22",query)
-  }
-  if(($(":text[name='record']").val()).length>0){
-    query=addElementToQuery("notice%20all%20%22"+$(":text[name='record']").val()+"%22",query)
-  }
-  if(($(":text[name='publisher']").val()).length>0){
-    query=addElementToQuery("dc.publisher%20all%20%22"+$(":text[name='publisher']").val()+"%22",query)
-  }
-  if(($(":text[name='isbn']").val()).length>0){
-    query=addElementToQuery("ISBN%20all%20%22"+$(":text[name='isbn']").val()+"%22",query)
-  }
-  if(($("select[name='collection']").val()).length>0){
-    query=addElementToQuery("colnum%20adj%20%22Appartient%20à%20l%27ensemble%20documentaire%20:%20"+$("select[name='collection']").val()+"%22",query)
-  }
-  
-  
-  console.log(query);
-  return query;
-}
-
-
-// Adds an element to a query
-function addElementToQuery(element,query) {
-  if(query.length>0){
-     query=query+"%20and%20("+element+")";
-  } else {
-     query="("+element+")";
-  }
-  return query;
-}
-
-
-$(document).ready(function(){
-  // Adds an event for any click on the submit button of the form
-  $("#submitGallica").on("click",function(e){
-    e.preventDefault();
-    var query=createQuery();
-    // Queries the Gallica API to get the results in XML format
-    jQuery.ajax({
-    type: "GET",
-    //url: "./getData.php?q=(dc.creator%20all%20%22Atget,%20Eugène%22%20or%20dc.contributor%20all%20%22Atget,%20Eugène%22%20)",
-    url: "./getData.php?q="+query,
-    dataType: "xml",
-    success: getXmlFromGallica
-    });
-  })
-  
-
-})
-    //url: "./getData.php?q=text%20any%20%22mar%C3%A2tre%22",
+<SCRIPT TYPE="text/javascript" SRC="./js/gallicarte.js"></SCRIPT>
 
 
 
-</SCRIPT>
-
-
-
-<div class="container">  
+<div class="container">	 
 <div class="galliheader">
+  
+  <div id="map" style="visibility:false; position: fixed; bottom: 0; left: 0; width: 100%; height: 300px;"></div>
+  
+
 <h1 class="form-signin-heading"><img src="./visuels/gallicarteheader.png"></h1>
 <br>	
 </div>
 <p style="margin-top:20px">Explorez les collections numérisées de Gallica sur une carte. Gallicarte, c'est : une interface d'interrogation + un plug-in pour Chrome + <a href="https://github.com/hackathonBnF/gallicarte/wiki/Accueil" taget="_blank">du code ouvert</a><br/>
 twitter : <a href="https://twitter.com/gallicarte" target="_blank">@gallicarte</a>
-</p>
+</p>		
+
 <h2 class="form-signin-heading">Recherche avancée sur Gallica</h2>
 	<br>
   <form class="form-signin">
@@ -192,6 +69,7 @@ ISBN : <br>
   <br>
 Collection : <br>
 <select class="form-control" name="collection" title="Sélection collections numériques"><option value="" title="---- Choisir une collection ----" selected="selected">
+
 ---- Choisir une collection ----
 </option><option value="ABCdaire1" title="Abécédaires jeunesse">
 Abécédaires jeunesse
@@ -336,16 +214,59 @@ Transsibérien
 
 
 
-</body>
 
-<h1 style="margin-left:15px">Lieux trouvés</h1>
+
+<h1 id="foundLocations">Lieux trouvés</h1>
 
 <ul id="allResults"></ul>
 
-<!--<div id="results" style="visibility:hidden">-->
-<div id="results">
+<!--style="visibility:hidden"-->
+<div id="results" style="visibility:hidden"></div>
+
+<div id="resultNumber" style="visibility:hidden">1</div>
+<div id="startRecord" style="visibility:hidden">1</div>
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+</div>
 </div>
 
-</div>
+</body>
 
+	<script type="text/javascript">
+		var osmTileUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+		var basemap = new L.TileLayer(osmTileUrl, {maxZoom: 18});
+
+		var map = new L.Map('map', {
+			layers: [basemap],
+			center: new L.LatLng(53.2, 5.8), zoom: 12
+		});
+
+		
+    
+    console.log("carte")
+    var googleGeocodeProvider = new L.GeoSearch.Provider.Google();
+    googleGeocodeProvider.GetLocations('rue Saint-Jacques, Paris', function(data){
+       console.log("carte2")
+       console.log("x"+data.x+"y"+data.y);
+       // in data are your results with x, y, label and bounds (currently availabel for google maps provider only)
+    });
+		
+	</script>
 </html>
