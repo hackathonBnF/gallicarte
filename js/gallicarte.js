@@ -18,6 +18,37 @@ function parseResponse(jsonData) {
 }
 
 
+// Add a marker to the map, with required informations: latitude, longitude, URL of the document in Gallica, title, identified location
+function addMarker(latitude,longitude,gallicaURL,title,location) {
+   var marker=L.marker([parseFloat(latitude), parseFloat(longitude)]);
+   markersLayer.addLayer(marker);
+   marker.addTo(map)
+   .bindPopup("<a href=\""+gallicaURL+"\"><img title=\""+title+"\" src=\""+gallicaURL+"/f1.lowres\" height=\"100px\"></a><br/>"+location+" <small>("+latitude+", "+longitude+")</small>");
+   //.openPopup();
+}
+
+// Use the results of DataBNF about some geographic information found
+function findDataBnf(data) {
+   if(data.results.bindings.length>0){
+      var gallicaUrl=data.results.bindings[0].gallicaUrl.value;
+      var lat=data.results.bindings[0].lat.value;
+      var lon=data.results.bindings[0].lon.value;
+      var titre=data.results.bindings[0].titre.value;
+      //console.log("Lieu ! "+gallicaUrl+": "+lat+"/"+lon);
+      addMarker(lat,lon,gallicaUrl,titre,titre);
+   }
+}
+
+// Geocoding with Nominatim
+// https://derickrethans.nl/leaflet-and-nominatim.html
+function addr_search(inp,gallicaURL,title,location) {
+  $.getJSON('http://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + inp, function(data) {
+     //console.log('http://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + inp);
+     //console.log("location: "+inp+" / "+data[0].lat+"-"+data[0].lon)
+     addMarker(data[0].lat,data[0].lon,gallicaURL,title,location) 
+  });
+}
+
 // Parse the results returned in XML by the Gallica API
 function getXmlFromGallica(xmlData) {     
 
@@ -70,69 +101,92 @@ function getXmlFromGallica(xmlData) {
     
     //For each result:
     $("srwrecord").each(function(i){
+       //Get the title and URL of the result
        //alert(i);
-       //console.log("i"+$(this).html());
+       console.log("Result found: "+$(this).find("dctitle").html());
        var title=""
        title=$(this).find("dctitle").html();
        var gallicaURL=$(this).find("dcidentifier").html();
        
 
+       //Technique 1: dataBNF
+       //Check with dataBNF using SPARQL if there is an associated location with the document
+       //console.log(gallicaURL)
+       $.getScript("http://data.bnf.fr/sparql?default-graph-uri=&query=PREFIX+geo%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2003%2F01%2Fgeo%2Fwgs84_pos%23%3E%0D%0A++++++++PREFIX+skos%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0A++++++++PREFIX+dcterms%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0D%0A++++++++PREFIX+foaf%3A+%3Chttp%3A%2F%2Fxmlns.com%2Ffoaf%2F0.1%2F%3E%0D%0A++++++++PREFIX+rdarelationships%3A+%3Chttp%3A%2F%2Frdvocab.info%2FRDARelationshipsWEMI%2F%3E%0D%0A++++++++PREFIX+dc%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%0D%0A++++++++PREFIX+marcrel%3A+%3Chttp%3A%2F%2Fid.loc.gov%2Fvocabulary%2Frelators%2F%3E%0D%0A++++++++PREFIX+bnfroles%3A+%3Chttp%3A%2F%2Fdata.bnf.fr%2Fvocabulary%2Froles%2F%3E%0D%0A++++++++SELECT+%3Flieu+%3Flat+%3Flon+%3Flabel+%3FgallicaUrl+%3Ftitre%0D%0A++++++++WHERE%0D%0A++++++++%7B%0D%0A++++++++%3FconceptLieu+foaf%3Afocus+%3Flieu+%3B%0D%0A++++++++++++skos%3AprefLabel+%3Flabel+.%0D%0A++++++++%3Flieu+a+geo%3ASpatialThing%3B%0D%0A++++++++++++geo%3Alat+%3Flat+%3B%0D%0A++++++++++++geo%3Along+%3Flon.%0D%0A++++++++++++%0D%0A++++++++%3FconceptLieu++skos%3AcloseMatch+%3Fsujet.%0D%0A++++++++%3Fedition+dcterms%3Atitle+%3Ftitre.%0D%0A++++++++%3Fedition+dcterms%3Asubject+%3Fsujet+%3B%0D%0A++++++++rdarelationships%3AexpressionManifested+%3Fexp.%0D%0A++++++++%3Fexp+%3Fs+%3Fp+.%0D%0A++++++++%3Fedition+rdarelationships%3AelectronicReproduction+%3C"+gallicaURL+"%3E.%0D%0A++++++++%3Fedition+rdarelationships%3AelectronicReproduction+%3FgallicaUrl.%0D%0A++++++++%7D%0D%0A++++++++LIMIT+1&format=application%2Fsparql-results%2Bjson&timeout=0&should-sponge=&debug=on&callback=findDataBnf")
+
+       //Technique 2: use the dc subject fields
        //For each dcsubject in this result
-       $(this).find("dcsubject").each(function(i){
-       
-          console.log("getScript");
-          //Check with dataBNF using SPARQL if the subject is a location
-          var foundLocation = $.getScript("http://data.bnf.fr/sparql?default-graph-uri=&query=PREFIX+dcterms%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0D%0APREFIX+skos%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0ASELECT+DISTINCT+*+%0D%0AWHERE+%7B%0D%0A++%3Fsujet+%3Fprop+%22"+(($(this).html()).replace("\"","%22").replace(" ","%20"))+"%22%40fr.%0D%0A++%3Fsujet+dcterms%3AisPartOf+%3Chttp%3A%2F%2Fdata.bnf.fr%2Fvocabulary%2Fscheme%2Fr167%3E.%0D%0A+%23+%3Chttp%3A%2F%2Fdata.bnf.fr%2Fark%3A%2F12148%2Fcb16275204x%3E+%3Fa+%3Fb.%0D%0A%7D%0D%0ALIMIT+1000&format=application%2Fsparql-results%2Bjson&timeout=0&should-sponge=&debug=on&callback=parseResponse",function(){console.log($(this).html())});
-          //console.log($(this).html());
+       $(this).find("dcsubject").each(function(i){       
+          //console.log("getScript dcsubject="+$(this).html()+"|");
+          
+          //foundAddress will be 1 if we find an address by one of the possible techniques
+          foundAddress=0;
+           //"http://data.bnf.fr/sparql?default-graph-uri=&query=PREFIX+dcterms%3A+%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Fterms%2F%3E%0D%0APREFIX+skos%3A+%3Chttp%3A%2F%2Fwww.w3.org%2F2004%2F02%2Fskos%2Fcore%23%3E%0D%0ASELECT+DISTINCT+*%0D%0AWHERE+%7B%0D%0A++%3Fsujet+%3Fprop+%22Grande+Bri%C3%A8re+%28Loire-Atlantique%29%22%40fr.%0D%0A++%3Fsujet+dcterms%3AisPartOf+%3Chttp%3A%2F%2Fdata.bnf.fr%2Fvocabulary%2Fscheme%2Fr167%3E.%0D%0A+%23+%3Chttp%3A%2F%2Fdata.bnf.fr%2Fark%3A%2F12148%2Fcb16275204x%3E+%3Fa+%3Fb.%0D%0A%7D%0D%0ALIMIT+100&format=application%2Fsparql-results%2Bjson&timeout=0&should-sponge=&debug=on&callback=parseResponse"
+                    
+                    
+ 
 
           var possibleLocation=$(this).html();
           //console.log("subject"+possibleLocation)
           
+          /*
+          //Technique 2a: department
           //Check if there is a "département" between brackets:
           var openingP = possibleLocation.indexOf("(");
           var closingP = possibleLocation.indexOf(")");
           if (openingP>-1 && closingP>-1){
              var possibleDepartment=possibleLocation.substring(openingP+1,closingP)
              if(departement.indexOf(possibleDepartment)>-1){
+                alert("poss"+possibleDepartment)
                 //Found a "département"!
                 console.log(possibleDepartment);
+                var data=addr_search(possibleDepartment);
+                console.log(data);
              }             
           }
-                    
+          */          
           var res = possibleLocation.split("--");
           
+          //Technique 2b: Look for pattern "City (France) -- location"
           // if we find "--" in the subject, it may be a location
           if(res.length>1){
+             // save the end of this possible location to check later if it is equal to "France"
              possibleCountry=res[0].substring(res[0].length-9);
+             // save the beginning of this possible location which may contain a city
              res[1]=res[1].substring(1,res[1].length);
              //console.log(possibleCountry)
              
              // if we find "(France)" in the subject before "--", it is a location
              if(possibleCountry=="(France) "){
                 //console.log("AAAA"+res[1])
+                var city = res[0].substring(0,res[0].length-10)
                 var latitude=0;
                 var longitude=0;
+                // Look for the address in the local database
                 var indexOfAddress=nom.indexOf(res[1]);
                 //console.log(indexOfAddress+"-"+res[1]+"|");
                 if (indexOfAddress>-1){
                    latitude=lat[indexOfAddress]
                    longitude=lon[indexOfAddress]
+                } else {
+                   //console.log("Looking for the coordinates of -"+res[1]+"|"+city);
+                   // Call the Nominatim API to get latitude and longitude
+                   // It works but quickly gets blocked: need to avoid flooding the server/cache the retrieved data
+                   // "Results must be cached on your side. Clients sending repeatedly the same query may be classified as faulty and blocked."
+                   //addr_search(res[1]+", "+city+", France",gallicaURL,title,res[1]);
                 }
                                 
-                //$("#allResults").append("<li><a href=\""+gallicaURL+"\"><img title=\""+title+"\" src=\""+gallicaURL+"/f1.lowres\" height=\"100px\"></a> : "+res[1]+" <small>("+latitude+", "+longitude+")</small></li>")
-                //console.log($(this).find("dcidentifier").html())
                 var obj=resultInfos(title,res[1]+", "+res[0],gallicaURL)
                 
                 if(indexOfAddress>-1){
                    //console.log(title+" : "+parseInt(latitude)+" "+parseInt(longitude))
-                   var marker=L.marker([parseFloat(latitude), parseFloat(longitude)]);
-                   markersLayer.addLayer(marker);
-                   marker.addTo(map)
-                   .bindPopup("<a href=\""+gallicaURL+"\"><img title=\""+title+"\" src=\""+gallicaURL+"/f1.lowres\" height=\"100px\"></a><br/>"+res[1]+" <small>("+latitude+", "+longitude+")</small>");                                   
-                //.openPopup();
+                   // add a marker to the map
+                   addMarker(latitude,longitude,gallicaURL,title,res[1])
                 }
              }
           }
+          
+          
        })
     })
     
@@ -233,6 +287,8 @@ $(document).ready(function(){
      }
   })
   
+  foundURL = new Object();
+  
   markersLayer = new L.LayerGroup(); 
   map = L.map('map').setView([48.84, 2.34], 5);
   L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -250,8 +306,11 @@ $(document).ready(function(){
   $("#submitGallica").on("click",function(e){
     e.preventDefault();
     
+    
+    // Show the map
     $("#map").show();
     $("#mapContainer").show();
+    
     
     var query = createQuery();
     // Queries the Gallica API to get the results in XML format
